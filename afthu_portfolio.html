@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Afthu — CS Graduate & Tech Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f5f0;
+    --grey-100: #e8e8e3;
+    --grey-200: #d0d0c8;
+    --grey-400: #999990;
+    --grey-600: #555550;
+    --grey-800: #2a2a28;
+    --accent: #1a1a1a;
+    --line: rgba(0,0,0,0.1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--white);
+    color: var(--black);
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--black);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 30px; height: 30px;
+    border: 1px solid var(--black);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease;
+    opacity: 0.4;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* Layout */
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative; z-index: 1;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 5rem;
+    animation: fadeIn 0.6s ease both;
+  }
+  .topbar-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+  .topbar-status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--grey-600);
+    letter-spacing: 0.08em;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #3a3a3a;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 6rem;
+    animation: slideUp 0.8s ease 0.1s both;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey-400);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 1px;
+    background: var(--grey-400);
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(52px, 10vw, 82px);
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 300;
+  }
+  .hero-bio {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--grey-600);
+    max-width: 480px;
+    border-left: 1px solid var(--line);
+    padding-left: 1.5rem;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 5rem;
+    animation: slideUp 0.7s ease both;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  .section-num {
+    font-size: 11px;
+    color: var(--grey-400);
+    letter-spacing: 0.1em;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--line);
+  }
+  .stat-item {
+    padding: 2rem 1.5rem;
+    border-right: 1px solid var(--line);
+    transition: background 0.2s;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-item:hover { background: var(--grey-100); }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grey-400);
+  }
+
+  /* Skills */
+  .skills-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .skill-item {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: padding-left 0.2s;
+  }
+  .skill-item:hover { padding-left: 8px; }
+  .skill-item:nth-child(odd) { padding-right: 2rem; }
+  .skill-item:nth-child(even) { padding-left: 2rem; border-left: 1px solid var(--line); }
+  .skill-item:nth-child(even):hover { padding-left: calc(2rem + 8px); }
+  .skill-name {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .skill-level {
+    font-size: 10px;
+    color: var(--grey-400);
+    letter-spacing: 0.08em;
+  }
+  .skill-dots {
+    display: flex; gap: 3px; margin-left: 1rem;
+  }
+  .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    border: 1px solid var(--grey-400);
+  }
+  .dot.filled { background: var(--black); border-color: var(--black); }
+
+  /* Experience */
+  .exp-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 2rem;
+    transition: padding-left 0.2s;
+  }
+  .exp-item:hover { padding-left: 8px; }
+  .exp-meta {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey-400);
+    line-height: 1.8;
+    padding-top: 3px;
+  }
+  .exp-content h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 0.3rem;
+  }
+  .exp-company {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey-600);
+    margin-bottom: 0.75rem;
+  }
+  .exp-desc {
+    font-size: 12px;
+    line-height: 1.85;
+    color: var(--grey-600);
+  }
+  .exp-tags {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1rem;
+  }
+  .etag {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border: 1px solid var(--grey-200);
+    color: var(--grey-600);
+  }
+
+  /* Projects */
+  .project-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 2rem;
+    transition: padding-left 0.2s;
+  }
+  .project-item:hover { padding-left: 8px; }
+  .project-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--grey-200);
+    padding-top: 0.2rem;
+  }
+  .project-content h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .project-content p {
+    font-size: 12px;
+    line-height: 1.85;
+    color: var(--grey-600);
+    margin-bottom: 0.75rem;
+  }
+  .project-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .ptag {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border: 1px solid var(--grey-200);
+    color: var(--grey-600);
+  }
+
+  /* Education */
+  .edu-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 2rem;
+  }
+
+  /* Contact */
+  .contact-block {
+    padding: 3rem 0;
+  }
+  .contact-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 2rem;
+    line-height: 1.2;
+  }
+  .contact-links {
+    display: flex; flex-wrap: wrap; gap: 12px;
+  }
+  .contact-link {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--black);
+    text-decoration: none;
+    padding: 12px 24px;
+    border: 1px solid var(--black);
+    transition: background 0.2s, color 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .contact-link:hover { background: var(--black); color: var(--white); }
+  .contact-link.ghost {
+    border-color: var(--grey-200);
+    color: var(--grey-600);
+  }
+  .contact-link.ghost:hover { background: var(--grey-100); color: var(--black); }
+
+  /* Footer */
+  footer {
+    padding: 2rem 0;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey-400);
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section:nth-child(1) { animation-delay: 0.15s; }
+  .section:nth-child(2) { animation-delay: 0.25s; }
+  .section:nth-child(3) { animation-delay: 0.35s; }
+  .section:nth-child(4) { animation-delay: 0.45s; }
+  .section:nth-child(5) { animation-delay: 0.55s; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 2px; }
+  ::-webkit-scrollbar-track { background: var(--white); }
+  ::-webkit-scrollbar-thumb { background: var(--grey-400); }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 44px; }
+    .exp-item, .project-item, .edu-item { grid-template-columns: 1fr; gap: 0.5rem; }
+    .skills-list { grid-template-columns: 1fr; }
+    .skill-item:nth-child(even) { padding-left: 0; border-left: none; }
+    .skill-item:nth-child(even):hover { padding-left: 8px; }
+    .stats-row { grid-template-columns: 1fr; }
+    .stat-item { border-right: none; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="page">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="topbar-logo">Afthu</span>
+    <span class="topbar-status">
+      <span class="status-dot"></span>
+      Available for opportunities
+    </span>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">CS Graduate · Kerala, India</div>
+    <h1>Siddiqul<br><em>Afdad KM</em></h1>
+    <p class="hero-bio">
+      Computer Science graduate with a passion for data, technology, and people. 
+      I bridge the gap between technical systems and human connection — whether 
+      through counseling, data analysis, or creative problem-solving.
+    </p>
+  </div>
+
+  <!-- At a glance -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">At a glance</span>
+      <span class="section-num">01</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-num">1+</div>
+        <div class="stat-label">Year of experience</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">6+</div>
+        <div class="stat-label">Tools mastered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Curiosity</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skills -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Skills</span>
+      <span class="section-num">02</span>
+    </div>
+    <div class="skills-list">
+
+      <div class="skill-item">
+        <span class="skill-name">Python</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span>
+        </div>
+      </div>
+      <div class="skill-item">
+        <span class="skill-name">SQL</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <span class="skill-name">Data Analysis</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span>
+        </div>
+      </div>
+      <div class="skill-item">
+        <span class="skill-name">Excel</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot filled"></span><span class="dot filled"></span>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <span class="skill-name">CRM Systems</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      </div>
+      <div class="skill-item">
+        <span class="skill-name">Communication</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot filled"></span><span class="dot filled"></span>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <span class="skill-name">Machine Learning</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      </div>
+      <div class="skill-item">
+        <span class="skill-name">Data Visualization</span>
+        <div class="skill-dots">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Experience -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Experience</span>
+      <span class="section-num">03</span>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-meta">
+        2024<br>Internship
+      </div>
+      <div class="exp-content">
+        <h3>Admission Counselor</h3>
+        <div class="exp-company">B-Learn Academy</div>
+        <p class="exp-desc">
+          Counseled prospective students on course selection and career pathways, 
+          conducted outreach campaigns, and managed enrollment pipelines using CRM tools. 
+          Played a key role in improving student onboarding experience and conversion rates.
+        </p>
+        <div class="exp-tags">
+          <span class="etag">Counseling</span>
+          <span class="etag">CRM</span>
+          <span class="etag">Outreach</span>
+          <span class="etag">Enrollment</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Projects -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Projects</span>
+      <span class="section-num">04</span>
+    </div>
+
+    <div class="project-item">
+      <div class="project-num">01</div>
+      <div class="project-content">
+        <h3>Data Analysis Portfolio</h3>
+        <p>
+          A structured learning project covering statistics, Python, SQL, 
+          visualization, and machine learning basics — built to refresh and 
+          solidify foundational data skills.
+        </p>
+        <div class="project-tags">
+          <span class="ptag">Python</span>
+          <span class="ptag">Statistics</span>
+          <span class="ptag">SQL</span>
+          <span class="ptag">Visualization</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-item">
+      <div class="project-num">02</div>
+      <div class="project-content">
+        <h3>Excel Mastery Workbook</h3>
+        <p>
+          A self-built Excel workbook covering core functions, pivot tables, 
+          VLOOKUP, conditional logic, and data charting — serving as both 
+          a practice tool and a reference guide.
+        </p>
+        <div class="project-tags">
+          <span class="ptag">Excel</span>
+          <span class="ptag">VLOOKUP</span>
+          <span class="ptag">Pivot Tables</span>
+          <span class="ptag">Data Viz</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Education -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Education</span>
+      <span class="section-num">05</span>
+    </div>
+    <div class="edu-item">
+      <div class="exp-meta">BSc<br>Computer Science</div>
+      <div class="exp-content">
+        <h3>Bachelor of Science</h3>
+        <div class="exp-company">Computer Science</div>
+        <p class="exp-desc">
+          Studied core CS fundamentals including programming, algorithms, data structures, 
+          and applied data analytics. Complemented coursework with a Data Analytics certification.
+        </p>
+        <div class="exp-tags">
+          <span class="etag">Algorithms</span>
+          <span class="etag">Data Structures</span>
+          <span class="etag">Analytics Certification</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Contact</span>
+      <span class="section-num">06</span>
+    </div>
+    <div class="contact-block">
+      <p class="contact-heading">Let's build<br>something together.</p>
+      <div class="contact-links">
+        <a href="mailto:your@email.com" class="contact-link">✉ Email me</a>
+        <a href="https://linkedin.com/in/yourprofile" class="contact-link ghost" target="_blank">LinkedIn</a>
+        <a href="https://github.com/yourusername" class="contact-link ghost" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Siddiqul Afdad KM · 2025</span>
+    <span>Kerala, India</span>
+  </footer>
+
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  // Cursor enlarge on hover
+  document.querySelectorAll('a, .skill-item, .exp-item, .project-item, .stat-item').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.transform = 'translate(-50%,-50%) scale(1.8)';
+      ring.style.opacity = '0.15';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.transform = 'translate(-50%,-50%) scale(1)';
+      ring.style.opacity = '0.4';
+    });
+  });
+
+  // Scroll-triggered fade-in
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.section').forEach((s, i) => {
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(20px)';
+    s.style.transition = `opacity 0.6s ease ${i * 0.08}s, transform 0.6s ease ${i * 0.08}s`;
+    observer.observe(s);
+  });
+</script>
+
+</body>
+</html>
